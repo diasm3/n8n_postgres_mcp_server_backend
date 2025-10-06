@@ -58,9 +58,8 @@ confluence_data/
 *.sql.gz
 *.dump
 
-# Database backups - 특정 파일만 포함
+# Database backups (모두 제외)
 database/backups/*
-!database/backups/full-dump.sql
 
 # Large seed files (대용량 시드 파일)
 database/scripts/seeds/*-seed-*.sql
