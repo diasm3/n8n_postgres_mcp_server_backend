@@ -413,4 +413,54 @@ export function registerTools(server: McpServer) {
       }
     }
   )
+
+  server.registerTool(
+    "assign-complaint",
+    {
+      title: "Complaint Assigner",
+      description: "Assign a complaint to an agent by complaint ID and agent ID",
+      inputSchema: {
+        complaintId: z.string().describe("The UUID of the complaint to assign"),
+        agentId: z.string().describe("The UUID of the agent to assign the complaint to"),
+        assignedTeam: z.string().optional().describe("The team name (e.g., 'CS 1팀', '기술 지원팀')"),
+      },
+    },
+    async ({ complaintId, agentId, assignedTeam }) => {
+      const updateData: Record<string, unknown> = {
+        assignedTo: agentId,
+        status: "처리중",
+      }
+
+      if (assignedTeam) {
+        updateData.assignedTeam = assignedTeam
+      }
+
+      const response = await fetch(
+        `http://backend:3000/complaints/${complaintId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updateData),
+        }
+      )
+
+      if (!response.ok) {
+        const error = await response.text()
+        throw new Error(`Failed to assign complaint: ${error}`)
+      }
+
+      const data = (await response.json()) as Record<string, unknown>
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Successfully assigned complaint ${complaintId} to agent ${agentId}${assignedTeam ? ` (${assignedTeam})` : ""}. Status changed to '처리중'. Full data: ${JSON.stringify(data)}`,
+          },
+        ],
+        structuredContent: data,
+      }
+    }
+  )
 }
