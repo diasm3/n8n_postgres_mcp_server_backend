@@ -6,57 +6,281 @@
 
 ### 주요 구성 요소
 
-- **Frontend** (Next.js 15 + TypeScript + Tailwind CSS)
-- **Backend API Server** (NestJS + Prisma + PostgreSQL)
-- **n8n Workflow Automation** (MCP 서버 연동)
+- **[Frontend](./frontend/README.md)** - Next.js 15 + TypeScript + Tailwind CSS
+- **[Backend API Server](./backend_junggo/README.md)** - NestJS + Prisma + PostgreSQL
+- **[Database](./database/README.md)** - PostgreSQL 16 스키마 및 설계 문서
+- **[MCP Server](./mcp_server_practice/README.md)** - AI 에이전트 통합 레이어
+- **n8n Workflow Automation** - MCP 서버 연동
 - **고객 컴플레인 대응 시스템**
 - **JIRA 연동 티켓 관리**
+
+> 💡 **서비스별 상세 문서**: 각 서비스의 상세한 개발 가이드, API 문서, 트러블슈팅은 위 링크를 클릭하세요.
 
 ## 🏗️ 시스템 아키텍처
 
 ```
-                    ┌──────────────────────────────────────────┐
-                    │         External Services                 │
-                    │  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
-                    │  │  ngrok   │  │   JIRA   │  │ Claude  │ │
-                    │  │  (HTTPS) │  │  System  │  │   AI    │ │
-                    │  └────┬─────┘  └────┬─────┘  └────┬────┘ │
-                    └───────┼─────────────┼─────────────┼──────┘
-                            │             │             │
-┌─────────────────┐         │             │             │
-│   Frontend      │         │             │             │
-│   (Customer)    │         │             │             │
-└────────┬────────┘         │             │             │
-         │                  │             │             │
-         ▼                  ▼             ▼             ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Docker Network                            │
-│                                                               │
-│  ┌─────────────────┐     ┌─────────────────┐                │
-│  │  Backend API    │────▶│   PostgreSQL    │                │
-│  │   (NestJS)      │     │   Database      │                │
-│  │  Port: 3003     │     │   Port: 5432    │                │
-│  └────────┬────────┘     └────────┬────────┘                │
-│           │                       │                          │
-│           │              ┌────────┴────────┐                 │
-│           │              │                 │                 │
-│           │              ▼                 ▼                 │
-│  ┌────────▼────────┐  ┌──────────────┐  ┌─────────────┐    │
-│  │      n8n        │  │  Postgres    │  │     MCP     │    │
-│  │   Workflow      │──│  MCP Server  │  │   Server    │    │
-│  │  Port: 5680     │  │  Port: 8003  │  │ Port: 8001  │    │
-│  └────────┬────────┘  └──────────────┘  └──────┬──────┘    │
-│           │                                     │            │
-│           │              ┌──────────────────────┘            │
-│           │              │                                   │
-│           ▼              ▼                                   │
-│  ┌─────────────────────────────────┐                        │
-│  │         pgAdmin                  │                        │
-│  │       Port: 5050                 │                        │
-│  └─────────────────────────────────┘                        │
-│                                                               │
-└───────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          🌐 External Layer                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│   ┌──────────────┐    ┌──────────────┐    ┌──────────────┐                 │
+│   │   🔒 ngrok   │    │  📋 JIRA     │    │  🤖 Claude   │                 │
+│   │   (HTTPS)    │    │   System     │    │     AI       │                 │
+│   │  Port: 4040  │    │  Port: 8081  │    │              │                 │
+│   └──────┬───────┘    └──────┬───────┘    └──────┬───────┘                 │
+│          │                   │                    │                          │
+└──────────┼───────────────────┼────────────────────┼──────────────────────────┘
+           │                   │                    │
+           │                   │                    │
+┌──────────▼───────────────────▼────────────────────▼──────────────────────────┐
+│                          🌍 User Access Layer                                 │
+├───────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│   ┌─────────────────────────────────────────────────────────────────┐       │
+│   │  💻 Frontend (Next.js 15)                                        │       │
+│   │  http://localhost:3002                                           │       │
+│   │  ├─ React Hook Form + Zod Validation                            │       │
+│   │  ├─ CS 민원 접수 폼                                               │       │
+│   │  └─ 자동 ID 생성 (상품/주문)                                      │       │
+│   └───────────────────────┬─────────────────────────────────────────┘       │
+│                           │ HTTP/JSON (CORS)                                 │
+└───────────────────────────┼──────────────────────────────────────────────────┘
+                            │
+                            │
+┌───────────────────────────▼──────────────────────────────────────────────────┐
+│                    🐳 Docker Network (Backend Services)                      │
+├───────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│   ┌─────────────────────────────────────────────────────────────────┐       │
+│   │  🚀 Backend API (NestJS)                                         │       │
+│   │  Port: 3003 (External) / 3000 (Internal)                         │       │
+│   │  ├─ REST API Endpoints                                           │       │
+│   │  ├─ Prisma ORM                                                   │       │
+│   │  ├─ CORS Configuration                                           │       │
+│   │  └─ Swagger Documentation                                        │       │
+│   └───────────────┬─────────────────┬───────────────────────────────┘       │
+│                   │                 │                                        │
+│                   │                 │                                        │
+│   ┌───────────────▼─────────────────▼─────────────────────────────┐         │
+│   │  🗄️  PostgreSQL Database                                        │         │
+│   │  Port: 5432                                                     │         │
+│   │  ├─ 17 Tables (complaints, users, logs, etc.)                  │         │
+│   │  ├─ Prisma Schema & Migrations                                 │         │
+│   │  ├─ Seed Data (50+ dummy records)                              │         │
+│   │  └─ pgvector Extension (AI Embeddings)                         │         │
+│   └──────┬──────────────────────────┬───────────────────────────────┘        │
+│          │                          │                                        │
+│          │                          │                                        │
+│   ┌──────▼──────────┐    ┌──────────▼──────────┐    ┌────────────────┐     │
+│   │  🔧 pgAdmin     │    │  🔌 Postgres MCP    │    │  🎯 MCP Server │     │
+│   │  Port: 5050     │    │  Port: 8003         │    │  Port: 8001    │     │
+│   │  └─ DB 관리 UI  │    │  └─ SQL via MCP     │    │  └─ AI Tools   │     │
+│   └─────────────────┘    └─────────────────────┘    └────────┬───────┘     │
+│                                                                │              │
+│                                                                │              │
+│   ┌────────────────────────────────────────────────────────────▼───────┐    │
+│   │  ⚙️  n8n Workflow Automation                                       │    │
+│   │  Port: 5680                                                        │    │
+│   │  ├─ MCP Server Integration                                        │    │
+│   │  ├─ Webhook Processing                                            │    │
+│   │  ├─ Complaint Auto-Classification                                │    │
+│   │  └─ JIRA Ticket Creation                                          │    │
+│   └────────────────────────────────────────────────────────────────────┘    │
+│                                                                               │
+└───────────────────────────────────────────────────────────────────────────────┘
 
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                          📊 Data Flow Diagram                                 │
+├───────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  1️⃣  Customer Request Flow:                                                  │
+│      Frontend → Backend API → PostgreSQL → Response                          │
+│                                                                               │
+│  2️⃣  AI Agent Flow (via MCP):                                                │
+│      Claude/n8n → MCP Server → Backend API → PostgreSQL                      │
+│                                                                               │
+│  3️⃣  Automation Flow:                                                        │
+│      Webhook → ngrok → n8n → MCP Server → Backend API → JIRA                 │
+│                                                                               │
+│  4️⃣  Direct SQL Flow (for AI):                                               │
+│      Claude → Postgres MCP → PostgreSQL (Direct SQL)                         │
+│                                                                               │
+└───────────────────────────────────────────────────────────────────────────────┘
+
+
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                    🔄 CS 민원 처리 플로우 차트                                │
+├───────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│                        👤 고객 민원 접수                                      │
+│                               │                                               │
+│                               ▼                                               │
+│              ┌────────────────────────────────────┐                          │
+│              │  📝 Frontend (Next.js)              │                          │
+│              │  - CS 민원 접수 폼                  │                          │
+│              │  - 자동 ID 생성                     │                          │
+│              │  - Zod 검증                         │                          │
+│              └────────────────┬───────────────────┘                          │
+│                               │                                               │
+│                               │ HTTP POST                                     │
+│                               ▼                                               │
+│              ┌────────────────────────────────────┐                          │
+│              │  🚀 Backend API                     │                          │
+│              │  POST /complaints                   │                          │
+│              │  - 우선순위 자동 판단               │                          │
+│              │  - 긴급도 자동 판단                 │                          │
+│              │  - 티켓 번호 생성                   │                          │
+│              └────────────────┬───────────────────┘                          │
+│                               │                                               │
+│                               ▼                                               │
+│              ┌────────────────────────────────────┐                          │
+│              │  🗄️  PostgreSQL                     │                          │
+│              │  INSERT into complaints             │                          │
+│              │  - status: "접수"                   │                          │
+│              │  - 티켓 데이터 저장                 │                          │
+│              └────────────────┬───────────────────┘                          │
+│                               │                                               │
+│          ┌───────────────────┼───────────────────┐                          │
+│          │                   │                   │                           │
+│          ▼                   ▼                   ▼                           │
+│   ┌──────────┐        ┌──────────┐       ┌──────────┐                      │
+│   │ n8n 자동 │        │ AI 에이전트│      │  Frontend │                      │
+│   │ 워크플로우│        │  (Claude) │      │   응답     │                      │
+│   └─────┬────┘        └─────┬────┘       └──────────┘                      │
+│         │                   │                                                │
+│         ▼                   ▼                                                │
+│   ┌──────────────────┬──────────────────┐                                  │
+│   │  🤖 MCP Server    │  🔌 Postgres MCP │                                  │
+│   │  (Backend API)    │  (Direct SQL)    │                                  │
+│   └─────┬─────────────┴──────┬───────────┘                                  │
+│         │                    │                                               │
+│         ▼                    ▼                                               │
+│   ┌─────────────────────────────────┐                                       │
+│   │     민원 분류 & 배정             │                                       │
+│   │  ┌───────────────────────────┐  │                                       │
+│   │  │  카테고리별 자동 분류:     │  │                                       │
+│   │  │  - 가격정보    → CS 1팀   │  │                                       │
+│   │  │  - 상품정보    → CS 2팀   │  │                                       │
+│   │  │  - 배송구매    → 배송팀   │  │                                       │
+│   │  │  - 시스템기술  → 기술팀   │  │                                       │
+│   │  └───────────────────────────┘  │                                       │
+│   └─────────────┬───────────────────┘                                       │
+│                 │                                                            │
+│                 ▼                                                            │
+│   ┌─────────────────────────────────┐                                       │
+│   │  🎯 담당자 배정 (MCP Tool)       │                                       │
+│   │  PUT /complaints/:id             │                                       │
+│   │  - assignedTo: agent_id          │                                       │
+│   │  - assignedTeam: "CS 1팀"        │                                       │
+│   │  - status: "처리중"              │                                       │
+│   └─────────────┬───────────────────┘                                       │
+│                 │                                                            │
+│                 ▼                                                            │
+│   ┌─────────────────────────────────┐                                       │
+│   │  ❓ 지침서 존재 여부 확인        │                                       │
+│   └──┬───────────────────────────┬──┘                                       │
+│      │ YES                       │ NO                                        │
+│      ▼                           ▼                                           │
+│   ┌────────────────┐      ┌────────────────────┐                           │
+│   │  📖 지침서     │      │  📋 JIRA 티켓 생성 │                           │
+│   │  따라 응대     │      │  (MCP Tool)         │                           │
+│   │                │      │  - update-complaint-│                           │
+│   │  - 템플릿 사용 │      │    jira-ticket      │                           │
+│   │  - 빠른 해결   │      │  - 개발팀 검토 요청│                           │
+│   └───────┬────────┘      └─────────┬──────────┘                           │
+│           │                         │                                        │
+│           │                         ▼                                        │
+│           │              ┌─────────────────────┐                            │
+│           │              │  🔧 개발팀 검토     │                            │
+│           │              │  - 신규 지침 작성  │                            │
+│           │              │  - KB 업데이트      │                            │
+│           │              └─────────┬───────────┘                            │
+│           │                        │                                         │
+│           └────────────────────────┘                                         │
+│                        │                                                     │
+│                        ▼                                                     │
+│           ┌─────────────────────────────┐                                   │
+│           │  💬 고객 응대                │                                   │
+│           │  - 응답 작성                 │                                   │
+│           │  - 상태 업데이트             │                                   │
+│           │  - 만족도 조사               │                                   │
+│           └─────────────┬───────────────┘                                   │
+│                         │                                                    │
+│                         ▼                                                    │
+│           ┌─────────────────────────────┐                                   │
+│           │  ✅ 민원 완료                │                                   │
+│           │  - status: "해결"            │                                   │
+│           │  - resolvedAt 기록           │                                   │
+│           │  - 통계 업데이트             │                                   │
+│           └──────────────────────────────┘                                   │
+│                                                                               │
+└───────────────────────────────────────────────────────────────────────────────┘
+
+
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                    🚨 에스컬레이션 플로우 차트                                │
+├───────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│                        📝 민원 접수                                           │
+│                            │                                                  │
+│                            ▼                                                  │
+│              ┌──────────────────────────────┐                                │
+│              │  🎯 우선순위 & 긴급도 판단   │                                │
+│              │  (Backend 자동 판단)          │                                │
+│              └────────┬─────────────────────┘                                │
+│                       │                                                       │
+│          ┌────────────┼────────────┐                                         │
+│          │            │            │                                          │
+│          ▼            ▼            ▼                                          │
+│     ┌─────────┐  ┌─────────┐  ┌─────────┐                                  │
+│     │  Low    │  │ Medium  │  │  High   │                                  │
+│     │ Priority│  │ Priority│  │ Priority│                                  │
+│     └────┬────┘  └────┬────┘  └────┬────┘                                  │
+│          │            │            │                                          │
+│          ▼            ▼            ▼                                          │
+│   ┌──────────┐  ┌──────────┐  ┌──────────┐                                 │
+│   │ Level 1  │  │ Level 1  │  │ Level 2  │                                 │
+│   │ 일반상담원│  │ 일반상담원│  │ 선임상담원│                                 │
+│   └────┬─────┘  └────┬─────┘  └────┬─────┘                                 │
+│        │             │             │                                          │
+│        │             │             │                                          │
+│        ▼             ▼             ▼                                          │
+│   ┌─────────────────────────────────────┐                                   │
+│   │  ❓ 48시간 내 해결 가능?             │                                   │
+│   └──┬───────────────────────┬──────────┘                                   │
+│      │ YES                   │ NO                                            │
+│      ▼                       ▼                                                │
+│   ┌─────────┐     ┌──────────────────────┐                                 │
+│   │  해결   │     │  🔺 Level 2 에스컬   │                                 │
+│   │  완료   │     │  - escalationLevel: 2 │                                 │
+│   └─────────┘     │  - isEscalated: true  │                                 │
+│                   └──────────┬────────────┘                                 │
+│                              │                                               │
+│                              ▼                                               │
+│                  ┌──────────────────────────┐                               │
+│                  │  👔 팀장/매니저 검토     │                               │
+│                  │  - 복잡한 케이스         │                               │
+│                  │  - 법적 검토 필요        │                               │
+│                  └──────────┬───────────────┘                               │
+│                             │                                                │
+│                   ┌─────────┼─────────┐                                     │
+│                   │ 해결 가능│ 불가능  │                                     │
+│                   ▼         ▼         ▼                                      │
+│              ┌─────────┐ ┌────────────────┐                                │
+│              │  해결   │ │ 🔺 Level 3     │                                │
+│              │  완료   │ │ - 법무팀 협의  │                                │
+│              └─────────┘ │ - 임원 보고     │                                │
+│                          └────────┬────────┘                                │
+│                                   │                                          │
+│                                   ▼                                          │
+│                        ┌────────────────────┐                               │
+│                        │  👨‍💼 임원 레벨 결정  │                               │
+│                        │  Level 4           │                               │
+│                        │  - 중대 사안       │                               │
+│                        │  - 최종 의사결정   │                               │
+│                        └────────────────────┘                               │
+│                                                                               │
+└───────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 구성 요소 설명
@@ -273,622 +497,69 @@ tunnels:
    - n8n의 `N8N_WEBHOOK_URL` 환경변수가 ngrok URL로 설정되었는지 확인
    - n8n 워크플로우에서 Webhook URL이 올바른지 확인
 
-## 🌐 Frontend (Next.js)
+## 📦 서비스별 상세 문서
+
+### 🌐 Frontend (Next.js 15)
 
 고객이 CS 민원을 접수할 수 있는 웹 인터페이스입니다.
 
-### Frontend 구성
+- **기술 스택**: Next.js 15, TypeScript, Tailwind CSS, React Hook Form, Zod
+- **주요 기능**: CS 민원 접수 폼, 자동 ID 생성, 폼 검증, 접수 완료 정보 표시
+- **포트**: 3002 (외부) → 3000 (내부)
 
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Form Management**: React Hook Form
-- **Validation**: Zod
-- **API Communication**: Fetch API
+**[📖 Frontend 상세 문서 보기](./frontend/README.md)**
 
-### 주요 기능
+### 🚀 Backend API (NestJS)
 
-#### 1. CS 민원 접수 폼
+중고나라 CS 민원 관리 시스템의 백엔드 API 서버입니다.
 
-고객 정보와 문의 내용을 입력받는 폼:
+- **기술 스택**: NestJS, Prisma, PostgreSQL 16, TypeScript
+- **주요 API**: Customer Users, Internal Users, Complaints, User Logs
+- **포트**: 3003 (외부) → 3000 (내부)
+- **API 문서**: http://localhost:3003/api (Swagger)
 
-**고객 정보**
-- 이름 (필수)
-- 이메일 (필수)
-- 전화번호 (선택)
+**[📖 Backend 상세 문서 보기](./backend_junggo/README.md)**
 
-**문의 정보**
-- 카테고리 (필수): 가격정보, 상품정보, 배송구매, 리뷰평점, 회원개인정보, 시스템기술
-- 제목 (필수, 5자 이상)
-- 상세 내용 (필수, 10자 이상)
-- 관련 상품 ID (자동 생성, 읽기 전용)
-- 관련 주문 ID (자동 생성, 읽기 전용)
+### 🗄️ Database (PostgreSQL 16)
 
-#### 2. 자동 ID 생성
+데이터베이스 스키마 설계 및 관리 문서입니다.
 
-카테고리에 따라 관련 ID가 자동으로 생성됩니다:
+- **DBMS**: PostgreSQL 16
+- **ORM**: Prisma
+- **테이블**: 9개 (고객, 직원, 민원, 응답, 이력, 템플릿, SLA, KB 등)
+- **주요 기능**: 마이그레이션, 시드 데이터, 백업/복원
 
-- **상품정보 또는 배송구매** 선택 시 → 관련 상품 ID 자동 생성
-- **배송구매** 선택 시 → 관련 주문 ID 자동 생성
+**[📖 Database 상세 문서 보기](./database/README.md)**
 
-#### 3. 폼 검증
+### 🤖 MCP Server
 
-Zod 스키마를 사용한 클라이언트 측 검증:
+AI 에이전트(Claude, n8n 등)가 Backend API와 상호작용할 수 있도록 하는 통합 레이어입니다.
 
-```typescript
-- 이름: 2자 이상
-- 이메일: 유효한 이메일 형식
-- 제목: 5자 이상
-- 상세 내용: 10자 이상
-```
+- **기술 스택**: TypeScript, MCP Protocol, HTTP/SSE
+- **주요 Tools**: 고객 관리, 직원 관리, 민원 관리 (Read/Write), 사용자 로그
+- **포트**: 8001 (외부) → 3000 (내부)
 
-#### 4. 접수 완료 정보 표시
+**[📖 MCP Server 상세 문서 보기](./mcp_server_practice/README.md)**
 
-민원 등록 성공 시 다음 정보를 표시합니다:
+---
 
-- ✅ 티켓 번호 (예: CS-2025-10-00001)
-- 접수 ID (UUID)
-- 관련 상품 ID (있는 경우)
-- 관련 주문 ID (있는 경우)
+### 빠른 시작 가이드
 
-### Frontend 개발 환경
-
-#### 로컬 개발
+각 서비스를 개별적으로 실행하려면:
 
 ```bash
-cd frontend
-
-# 의존성 설치
-yarn install
-
-# 개발 서버 실행 (http://localhost:3000)
-yarn dev
-
-# 프로덕션 빌드
-yarn build
-
-# 프로덕션 서버 실행
-yarn start
-```
-
-#### 환경 변수
-
-`.env.local` 파일:
-
-```bash
-NEXT_PUBLIC_API_URL=http://localhost:3003
-```
-
-#### Docker로 실행
-
-```bash
-# Frontend 컨테이너만 빌드 및 시작
+# Frontend 실행
 docker compose up -d frontend
 
-# Frontend 로그 확인
-docker logs junggo_frontend -f
+# Backend 실행
+docker compose up -d backend
 
-# Frontend 재시작
-docker compose restart frontend
+# MCP Server 실행
+docker compose up -d mcp-server
 ```
 
-### Frontend 프로젝트 구조
+더 자세한 개발 가이드는 각 서비스의 README를 참고하세요.
 
-```
-frontend/
-├── 📁 app/                    # Next.js App Router
-│   ├── 📄 page.tsx           # 홈 페이지 (메인 폼)
-│   ├── 📄 layout.tsx         # 루트 레이아웃
-│   └── 📄 globals.css        # 전역 스타일
-├── 📁 components/             # React 컴포넌트
-│   └── 📄 ComplaintForm.tsx  # CS 민원 접수 폼
-├── 📁 lib/                    # 유틸리티 함수
-│   └── 📄 api.ts             # API 클라이언트
-├── 📁 types/                  # TypeScript 타입 정의
-│   └── 📄 complaint.ts       # Complaint 관련 타입
-├── 📄 Dockerfile              # Docker 이미지 설정
-├── 📄 .dockerignore           # Docker 빌드 제외 파일
-├── 📄 .env.local              # 로컬 환경 변수
-├── 📄 next.config.ts          # Next.js 설정 (Standalone 모드)
-├── 📄 tailwind.config.ts      # Tailwind CSS 설정
-├── 📄 tsconfig.json           # TypeScript 설정
-└── 📄 package.json            # 의존성 관리
-```
-
-### API 통신
-
-Frontend는 Backend API (`http://localhost:3003`)와 통신합니다:
-
-**민원 접수 API**
-```typescript
-POST /complaints
-Content-Type: application/json
-
-{
-  "customerName": "홍길동",
-  "customerEmail": "hong@example.com",
-  "customerPhone": "010-1234-5678",
-  "category": "배송구매",
-  "subject": "배송이 지연되고 있습니다",
-  "description": "주문한 상품이 일주일째 배송 중입니다...",
-  "priority": "medium",
-  "urgency": "normal",
-  "relatedProductId": "PROD-ABC123",
-  "relatedOrderId": "ORD-XYZ789"
-}
-```
-
-**응답**
-```json
-{
-  "id": "uuid-here",
-  "ticketNumber": "CS-2025-10-00001",
-  "customerName": "홍길동",
-  "customerEmail": "hong@example.com",
-  "category": "배송구매",
-  "status": "접수",
-  "priority": "medium",
-  "urgency": "normal",
-  "relatedProductId": "PROD-ABC123",
-  "relatedOrderId": "ORD-XYZ789",
-  "createdAt": "2025-10-06T12:00:00Z",
-  "updatedAt": "2025-10-06T12:00:00Z"
-}
-```
-
-### 배포 구성
-
-#### Standalone 모드
-
-Next.js Standalone 모드로 빌드되어 최소한의 파일만 포함:
-
-```dockerfile
-# 빌드 시점에 API URL 설정
-ARG NEXT_PUBLIC_API_URL=http://localhost:3003
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-
-# Standalone 출력물 복사
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
-
-# Node.js로 직접 실행
-CMD ["node", "server.js"]
-```
-
-#### 포트 설정
-
-- **내부 포트**: 3000 (컨테이너 내부)
-- **외부 포트**: 3002 (호스트 머신)
-- **Backend API**: 3003 (브라우저에서 접근)
-
-### 트러블슈팅
-
-**CORS 에러**
-```bash
-# Backend에서 CORS 설정 확인
-# backend_junggo/src/main.ts에서 Frontend URL 허용 확인
-app.enableCors({
-  origin: ['http://localhost:3002', ...],
-  ...
-});
-```
-
-**빌드 에러**
-```bash
-cd frontend
-rm -rf .next node_modules
-yarn install
-yarn build
-```
-
-**API 연결 실패**
-```bash
-# Backend가 실행 중인지 확인
-curl http://localhost:3003/complaints
-
-# Frontend 환경변수 확인
-docker exec junggo_frontend env | grep NEXT_PUBLIC_API_URL
-```
-
-## 🤖 MCP Server (Model Context Protocol)
-
-MCP Server는 AI 에이전트(Claude, n8n 등)가 백엔드 시스템과 상호작용할 수 있도록 하는 통합 레이어입니다.
-
-### MCP Server 구성 요소
-
-- **Tools**: AI가 호출할 수 있는 함수들 (예: DB 쿼리, API 호출)
-- **Resources**: AI가 읽을 수 있는 데이터 소스 (예: 파일, 설정)
-- **Prompts**: 미리 정의된 프롬프트 템플릿
-
-### 접속 정보
-
-| 항목 | 값 |
-|------|-----|
-| **MCP Server URL** | http://localhost:8001/mcp |
-| **컨테이너 이름** | mcp-server |
-| **포트** | 8001 (외부) → 3000 (내부) |
-| **전송 방식** | HTTP/SSE (Server-Sent Events) |
-
-### 사용 방법
-
-#### 1. Docker로 실행 (추천)
-
-```bash
-# docker-compose로 자동 실행 (이미 포함됨)
-docker-compose up -d mcp-server
-
-# 로그 확인
-docker logs mcp-server -f
-
-# 상태 확인
-curl http://localhost:8001/mcp
-```
-
-#### 2. 로컬에서 개발 모드로 실행
-
-```bash
-cd mcp_server_practice
-
-# 의존성 설치
-npm install
-
-# 빌드
-npm run build
-
-# 개발 모드 실행 (auto-reload)
-npm run dev
-
-# 또는 프로덕션 모드 실행
-npm start
-```
-
-### n8n에서 MCP Server 사용하기
-
-1. **n8n 워크플로우에서 HTTP Request 노드 추가**
-
-   ```
-   Method: POST
-   URL: http://mcp-server:3000/mcp
-   Body Type: JSON
-   Body:
-   {
-     "jsonrpc": "2.0",
-     "id": 1,
-     "method": "tools/call",
-     "params": {
-       "name": "tool_name",
-       "arguments": {}
-     }
-   }
-   ```
-
-2. **사용 가능한 MCP Tools 확인**
-
-   ```bash
-   curl -X POST http://localhost:8001/mcp \
-     -H "Content-Type: application/json" \
-     -d '{
-       "jsonrpc": "2.0",
-       "id": 1,
-       "method": "tools/list"
-     }'
-   ```
-
-### MCP Server 프로젝트 구조
-
-```
-mcp_server_practice/
-├── 📁 src/
-│   ├── 📁 tools/
-│   │   ├── 📄 tools.ts       # MCP Tools 정의
-│   │   ├── 📄 resources.ts   # MCP Resources 정의
-│   │   └── 📄 prompts.ts     # MCP Prompts 정의
-│   └── 📄 index.ts            # MCP Server 엔트리포인트
-├── 📁 dist/                   # 빌드 결과물
-├── 📄 Dockerfile              # Docker 이미지 설정
-├── 📄 package.json            # 의존성 관리
-├── 📄 tsconfig.json           # TypeScript 설정
-├── 📄 nodemon.json            # 개발 모드 설정
-└── 📄 readme.md               # MCP Server 문서
-```
-
-### Claude Desktop 연동 (선택사항)
-
-Claude Desktop에서 직접 MCP Server를 사용하려면:
-
-1. **Claude Desktop 설정 파일 열기**
-   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-
-2. **MCP Server 설정 추가**
-
-   ```json
-   {
-     "mcpServers": {
-       "junggo_backend": {
-         "command": "node",
-         "args": [
-           "/absolute/path/to/mcp_server_practice/dist/index.js"
-         ],
-         "env": {
-           "PORT": "3000"
-         }
-       }
-     }
-   }
-   ```
-
-3. **Claude Desktop 재시작**
-
-### MCP Server 개발 가이드
-
-새로운 Tool 추가하기:
-
-```typescript
-// src/tools/tools.ts
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [
-    {
-      name: "my_new_tool",
-      description: "도구 설명",
-      inputSchema: {
-        type: "object",
-        properties: {
-          param1: { type: "string", description: "파라미터 설명" }
-        },
-        required: ["param1"]
-      }
-    }
-  ]
-}))
-
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  if (request.params.name === "my_new_tool") {
-    const { param1 } = request.params.arguments
-    // 로직 구현
-    return {
-      content: [{ type: "text", text: "결과" }]
-    }
-  }
-})
-```
-
-### MCP Inspector로 테스트하기 🔍
-
-MCP Inspector는 MCP Server를 시각적으로 테스트하고 디버깅할 수 있는 공식 도구입니다.
-
-#### 설치 및 실행
-
-```bash
-# npx로 바로 실행 (설치 불필요)
-npx @modelcontextprotocol/inspector
-```
-
-또는 글로벌 설치:
-
-```bash
-# 글로벌 설치
-npm install -g @modelcontextprotocol/inspector
-
-# 실행
-mcp-inspector
-```
-
-#### MCP Inspector 사용법
-
-1. **MCP Inspector 실행**
-
-   ```bash
-   npx @modelcontextprotocol/inspector
-   ```
-
-   브라우저가 자동으로 열리며 `http://localhost:5173` 에서 실행됩니다.
-
-2. **Server 연결 설정**
-
-   Inspector 웹 UI에서:
-
-   - **Transport Type**: `SSE (Server-Sent Events)` 선택
-   - **SSE URL**: `http://localhost:8001/mcp` 입력
-   - **Connect** 버튼 클릭
-
-3. **Tools 탭에서 테스트**
-
-   - 사용 가능한 모든 Tools 목록 확인
-   - Tool 선택하여 파라미터 입력
-   - **Call Tool** 버튼으로 실행
-   - 실시간으로 결과 확인
-
-4. **Resources 탭에서 확인**
-
-   - 사용 가능한 Resources 목록 확인
-   - Resource 선택하여 내용 읽기
-
-5. **Prompts 탭에서 테스트**
-
-   - 미리 정의된 Prompt 템플릿 확인
-   - Prompt 선택하여 실행
-
-#### MCP Inspector 활용 예제
-
-**예제 1: Tools 테스트**
-
-1. Inspector에서 `http://localhost:8001/mcp` 연결
-2. Tools 탭으로 이동
-3. 사용 가능한 Tool 선택 (예: `get_users`)
-4. 파라미터 입력 (있는 경우)
-5. **Call Tool** 클릭
-6. 응답 확인:
-   ```json
-   {
-     "content": [
-       {
-         "type": "text",
-         "text": "[사용자 목록 데이터]"
-       }
-     ]
-   }
-   ```
-
-**예제 2: Resources 확인**
-
-1. Resources 탭으로 이동
-2. 사용 가능한 Resource 목록 확인
-3. Resource 선택하여 내용 읽기
-
-#### Docker 환경에서 MCP Inspector 사용
-
-MCP Server가 Docker 컨테이너에서 실행 중일 때:
-
-```bash
-# MCP Server가 실행 중인지 확인
-docker ps | grep mcp-server
-
-# MCP Inspector 실행 (로컬)
-npx @modelcontextprotocol/inspector
-
-# Inspector에서 연결
-# SSE URL: http://localhost:8001/mcp
-```
-
-#### MCP Inspector 스크린샷 가이드
-
-Inspector UI 구성:
-- **왼쪽 패널**: Tools, Resources, Prompts 목록
-- **중앙 패널**: 선택한 항목의 상세 정보 및 입력 폼
-- **오른쪽 패널**: 실행 결과 및 디버그 정보
-
-#### 유용한 디버깅 팁
-
-1. **Network 탭 확인**
-   - 브라우저 개발자 도구 (F12) 열기
-   - Network 탭에서 MCP 요청/응답 확인
-
-2. **Console 탭 확인**
-   - 에러 메시지 확인
-   - JSON-RPC 통신 로그 확인
-
-3. **MCP Server 로그와 함께 확인**
-   ```bash
-   # 터미널 1: MCP Server 로그
-   docker logs mcp-server -f
-
-   # 터미널 2: MCP Inspector 실행
-   npx @modelcontextprotocol/inspector
-   ```
-
-### 트러블슈팅
-
-**MCP Server 연결 안됨**
-```bash
-# MCP Server 컨테이너 상태 확인
-docker ps | grep mcp-server
-
-# 로그 확인
-docker logs mcp-server
-
-# 포트 확인
-curl http://localhost:8001/mcp
-```
-
-**MCP Inspector 연결 실패**
-```bash
-# 1. MCP Server가 실행 중인지 확인
-curl -X POST http://localhost:8001/mcp \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
-
-# 2. CORS 문제인 경우 - 브라우저 콘솔 확인
-# 개발자 도구 (F12) > Console 탭에서 에러 확인
-
-# 3. 포트가 이미 사용 중인 경우
-# MCP Inspector는 기본적으로 5173 포트 사용
-lsof -i :5173
-```
-
-**빌드 오류**
-```bash
-cd mcp_server_practice
-rm -rf dist node_modules
-npm install
-npm run build
-```
-
-## 📡 API 엔드포인트
-
-### Customer Users API
-
-- `GET /customer-users` - 모든 고객 사용자 조회
-- `POST /customer-users` - 새 고객 사용자 생성
-- `GET /customer-users/:id` - 특정 고객 사용자 조회
-- `PUT /customer-users/:id` - 고객 사용자 정보 수정
-- `DELETE /customer-users/:id` - 고객 사용자 삭제
-
-### Customer User Logs API
-
-- `GET /customer-user-logs` - 모든 로그 조회
-- `POST /customer-user-logs` - 로그 생성
-- `GET /customer-user-logs/user/:userId` - 특정 사용자 로그 조회
-- `GET /customer-user-logs/user/:userId/stats` - 사용자 로그 통계
-- `GET /customer-user-logs/event/:eventType` - 이벤트 타입별 로그 조회
-
-## 🔄 고객 대응 플로우
-
-### 1. 컴플레인 접수 및 분류
-
-```
-고객 문의 접수
-    ↓
-문의 유형 분류
-    ├─ 가격 정보
-    ├─ 상품 정보
-    ├─ 배송/구매
-    ├─ 리뷰/평점
-    ├─ 회원/개인정보
-    └─ 시스템/기술
-```
-
-### 2. 대응 프로세스
-
-```
-문의 접수 → 지침서 확인
-                ├─ 있음 → 지침서 따라 처리 → 고객 응대 → 처리 완료
-                └─ 없음 → JIRA 티켓 생성 → 개발팀 검토 → 신규 지침 추가
-```
-
-### 3. 에스컬레이션 단계
-
-1. **Level 1**: 일반 상담원 (지침서 내 해결)
-2. **Level 2**: 선임 상담원 (복잡한 문의)
-3. **Level 3**: 팀장/매니저 (법적 이슈)
-4. **Level 4**: 임원 보고 (중대 사안)
-
-## 📚 문서
-
-### 고객 대응 지침서
-
-- [`customer-complaint-guideline.md`](./customer-complaint-guideline.md) - 상세 대응 지침
-- [`complaint-response-templates.md`](./complaint-response-templates.md) - 응대 템플릿
-
-### 개발 문서
-
-- API 명세서 (작성 예정)
-- 데이터베이스 스키마 문서 (작성 예정)
-
-## 🔧 개발 환경
-
-### Backend
-
-- **Framework**: NestJS
-- **ORM**: Prisma
-- **Database**: PostgreSQL 16
-- **Language**: TypeScript
-
-### Workflow Automation
-
-- **Platform**: n8n
-- **Integration**: MCP Server, JIRA API
 
 ## 🗂️ 프로젝트 구조
 
