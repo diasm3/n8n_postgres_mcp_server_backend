@@ -463,4 +463,122 @@ export function registerTools(server: McpServer) {
       }
     }
   )
+
+  server.registerTool(
+    "update-complaint-jira-ticket",
+    {
+      title: "Update Complaint JIRA Ticket",
+      description: "Update the JIRA ticket key for a complaint",
+      inputSchema: {
+        complaintId: z.string().describe("The UUID of the complaint to update"),
+        jiraTicketKey: z.string().describe("The JIRA ticket key (e.g., 'JIRA-123', 'TECH-456')"),
+      },
+    },
+    async ({ complaintId, jiraTicketKey }) => {
+      const updateData = {
+        jiraTicketKey: jiraTicketKey,
+      }
+
+      const response = await fetch(
+        `http://backend:3000/complaints/${complaintId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updateData),
+        }
+      )
+
+      if (!response.ok) {
+        const error = await response.text()
+        throw new Error(`Failed to update JIRA ticket: ${error}`)
+      }
+
+      const data = (await response.json()) as Record<string, unknown>
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Successfully updated complaint ${complaintId} with JIRA ticket key: ${jiraTicketKey}. Full data: ${JSON.stringify(data)}`,
+          },
+        ],
+        structuredContent: data,
+      }
+    }
+  )
+
+  server.registerTool(
+    "update-complaint",
+    {
+      title: "Update Complaint",
+      description: "Update complaint fields (status, priority, urgency, jiraTicketKey, etc.)",
+      inputSchema: {
+        complaintId: z.string().describe("The UUID of the complaint to update"),
+        status: z.string().optional().describe("Status (접수, 처리중, 보류, 해결완료, 종료)"),
+        priority: z.enum(["high", "medium", "low"]).optional().describe("Priority level"),
+        urgency: z.enum(["urgent", "normal", "low"]).optional().describe("Urgency level"),
+        jiraTicketKey: z.string().optional().describe("JIRA ticket key"),
+        assignedTo: z.string().optional().describe("Agent UUID"),
+        assignedTeam: z.string().optional().describe("Team name"),
+        escalationLevel: z.number().optional().describe("Escalation level (1-4)"),
+        isEscalated: z.boolean().optional().describe("Escalation flag"),
+      },
+    },
+    async ({
+      complaintId,
+      status,
+      priority,
+      urgency,
+      jiraTicketKey,
+      assignedTo,
+      assignedTeam,
+      escalationLevel,
+      isEscalated,
+    }) => {
+      const updateData: Record<string, unknown> = {}
+
+      if (status) updateData.status = status
+      if (priority) updateData.priority = priority
+      if (urgency) updateData.urgency = urgency
+      if (jiraTicketKey) updateData.jiraTicketKey = jiraTicketKey
+      if (assignedTo) updateData.assignedTo = assignedTo
+      if (assignedTeam) updateData.assignedTeam = assignedTeam
+      if (escalationLevel !== undefined) updateData.escalationLevel = escalationLevel
+      if (isEscalated !== undefined) updateData.isEscalated = isEscalated
+
+      if (Object.keys(updateData).length === 0) {
+        throw new Error("No fields provided to update")
+      }
+
+      const response = await fetch(
+        `http://backend:3000/complaints/${complaintId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updateData),
+        }
+      )
+
+      if (!response.ok) {
+        const error = await response.text()
+        throw new Error(`Failed to update complaint: ${error}`)
+      }
+
+      const data = (await response.json()) as Record<string, unknown>
+
+      const updatedFields = Object.keys(updateData).join(", ")
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Successfully updated complaint ${complaintId}. Updated fields: ${updatedFields}. Full data: ${JSON.stringify(data)}`,
+          },
+        ],
+        structuredContent: data,
+      }
+    }
+  )
 }
