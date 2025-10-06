@@ -413,6 +413,63 @@ docker-compose up -d
 - 성능 정보: responseTime, httpMethod, statusCode
 - 분류: tags, level (debug, info, warning, error, critical)
 
+### InternalUsers 테이블 (내부 직원)
+
+- 기본 정보: id, email, firstName, lastName, password, phoneNumber
+- 직무 정보: department, position, employeeId, role
+- 권한 및 레벨: accessLevel, permissions
+- CS 전문성: specialties, maxConcurrentTickets
+- 근무 정보: workSchedule, isAvailable, currentWorkload
+- 성과 지표: totalTicketsHandled, avgResolutionTime, satisfactionRating
+- 상태 정보: status, lastActiveAt
+- 메타데이터: metadata, createdAt, updatedAt
+
+### CustomerComplaints 테이블 (고객 컴플레인)
+
+- 티켓 정보: id, ticketNumber
+- 고객 정보: userId, customerName, customerEmail, customerPhone
+- 문의 분류: category, subCategory, priority, urgency
+- 내용: subject, description, attachments
+- 상태 관리: status, escalationLevel, isEscalated
+- 처리 정보: assignedTo, assignedTeam, firstResponseAt, resolvedAt, responseTime, resolutionTime
+- 관련 정보: relatedProductId, relatedOrderId, relatedSellerId, jiraTicketKey
+- 보상/조치: compensationType, compensationAmount, compensationNote
+- 고객 만족도: satisfactionScore, feedbackComment
+- 메타데이터: tags, metadata, createdAt, updatedAt
+
+### ComplaintResponses 테이블 (컴플레인 응답)
+
+- 기본 정보: id, complaintId, responderId, responderType
+- 응답 내용: responseType, content, attachments
+- 플래그: isInternal, isAutoResponse
+- 타임스탬프: createdAt
+
+### ComplaintHistory 테이블 (컴플레인 이력)
+
+- 기본 정보: id, complaintId, actorId
+- 변경 내역: action, fromValue, toValue, note
+- 메타데이터: metadata, createdAt
+
+### ComplaintTemplates 테이블 (응답 템플릿)
+
+- 기본 정보: id, category, subCategory, templateName
+- 템플릿 내용: templateContent, variables
+- 상태 정보: isActive, usageCount
+- 생성 정보: createdBy, createdAt, updatedAt
+
+### ComplaintSlaRules 테이블 (SLA 규칙)
+
+- 기본 정보: id, category, priority
+- 시간 규칙: firstResponseTime, resolutionTime, escalationTime
+- 상태 정보: isActive, createdAt, updatedAt
+
+### ComplaintKnowledgeBase 테이블 (지식 베이스)
+
+- 기본 정보: id, category, subCategory
+- 콘텐츠: question, answer, keywords, relatedArticles
+- 통계: viewCount, helpfulCount, notHelpfulCount
+- 상태 정보: isPublished, createdBy, createdAt, updatedAt
+
 ## 👥 팀 구성
 
 - **백엔드 개발**: Backend API, Database
