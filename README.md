@@ -67,7 +67,7 @@
   - 고객 컴플레인, 사용자 관리 등
 
 - **PostgreSQL Database**: 데이터 저장소 (Port: 5432)
-  - 17개 테이블 (users, complaints, internal_users 등)
+  - 17개 테이블 (customer_users, complaints, internal_users 등)
   - 더미 데이터 자동 생성
   - pgvector 확장 (AI embedding)
 
@@ -588,21 +588,21 @@ npm run build
 
 ## 📡 API 엔드포인트
 
-### Users API
+### Customer Users API
 
-- `GET /users` - 모든 사용자 조회
-- `POST /users` - 새 사용자 생성
-- `GET /users/:id` - 특정 사용자 조회
-- `PUT /users/:id` - 사용자 정보 수정
-- `DELETE /users/:id` - 사용자 삭제
+- `GET /customer-users` - 모든 고객 사용자 조회
+- `POST /customer-users` - 새 고객 사용자 생성
+- `GET /customer-users/:id` - 특정 고객 사용자 조회
+- `PUT /customer-users/:id` - 고객 사용자 정보 수정
+- `DELETE /customer-users/:id` - 고객 사용자 삭제
 
-### User Logs API
+### Customer User Logs API
 
-- `GET /user-logs` - 모든 로그 조회
-- `POST /user-logs` - 로그 생성
-- `GET /user-logs/user/:userId` - 특정 사용자 로그 조회
-- `GET /user-logs/user/:userId/stats` - 사용자 로그 통계
-- `GET /user-logs/event/:eventType` - 이벤트 타입별 로그 조회
+- `GET /customer-user-logs` - 모든 로그 조회
+- `POST /customer-user-logs` - 로그 생성
+- `GET /customer-user-logs/user/:userId` - 특정 사용자 로그 조회
+- `GET /customer-user-logs/user/:userId/stats` - 사용자 로그 통계
+- `GET /customer-user-logs/event/:eventType` - 이벤트 타입별 로그 조회
 
 ## 🔄 고객 대응 플로우
 
@@ -674,8 +674,8 @@ n8n_with_mcp_server_example/
 │
 ├── 📁 backend_junggo/                  # NestJS Backend 애플리케이션
 │   ├── 📁 src/
-│   │   ├── 📁 users/                  # 사용자 관리 모듈
-│   │   ├── 📁 user-logs/              # 사용자 로그 모듈
+│   │   ├── 📁 users/                  # 고객 사용자 관리 모듈 (customer-users API)
+│   │   ├── 📁 user-logs/              # 고객 사용자 로그 모듈 (customer-user-logs API)
 │   │   ├── 📁 prisma/                 # Prisma 서비스
 │   │   ├── 📄 main.ts                 # 애플리케이션 엔트리
 │   │   ├── 📄 app.module.ts           # 루트 모듈
@@ -820,7 +820,7 @@ docker-compose up -d
 
 ## 🗄️ 데이터베이스 스키마
 
-### Users 테이블
+### Customer Users 테이블
 
 - 기본 정보: id, email, password, firstName, lastName
 - 추가 정보: phoneNumber, birthDate, role, profileImageUrl
@@ -829,7 +829,7 @@ docker-compose up -d
 - 로그인 정보: loginCount, lastLoginAt, lastLoginIp
 - 메타데이터: metadata (추가 정보 저장용)
 
-### UserLogs 테이블
+### Customer User Logs 테이블
 
 - 이벤트 정보: eventType, eventCategory, eventData
 - 기기 정보: ipAddress, userAgent, deviceInfo

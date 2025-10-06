@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from '@prisma/client';
+import { CustomerUser } from '@prisma/client';
 import { UserLogsService } from '../user-logs/user-logs.service';
 
 @Injectable()
@@ -12,8 +12,8 @@ export class UsersService {
     private userLogsService: UserLogsService,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const user = await this.prisma.user.create({
+  async create(createUserDto: CreateUserDto): Promise<CustomerUser> {
+    const user = await this.prisma.customerUser.create({
       data: createUserDto,
     });
 
@@ -29,20 +29,20 @@ export class UsersService {
     return user;
   }
 
-  async findAll(): Promise<User[]> {
-    return this.prisma.user.findMany({
+  async findAll(): Promise<CustomerUser[]> {
+    return this.prisma.customerUser.findMany({
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async findOne(id: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
+  async findOne(id: string): Promise<CustomerUser | null> {
+    return this.prisma.customerUser.findUnique({
       where: { id },
     });
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.prisma.user.update({
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<CustomerUser> {
+    const user = await this.prisma.customerUser.update({
       where: { id },
       data: updateUserDto,
     });
@@ -59,13 +59,13 @@ export class UsersService {
     return user;
   }
 
-  async remove(id: string): Promise<User> {
-    const user = await this.prisma.user.delete({
+  async remove(id: string): Promise<CustomerUser> {
+    const user = await this.prisma.customerUser.delete({
       where: { id },
     });
 
     // Note: Log will be deleted due to cascade, but we can create a log before deletion if needed
-    
+
     return user;
   }
 }

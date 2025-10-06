@@ -13,7 +13,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model CustomerUser {
   id              String    @id @default(uuid())
   email           String    @unique
   password        String
@@ -33,14 +33,14 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  logs UserLog[]
+  logs CustomerUserLog[]
 
   @@index([email])
   @@index([role])
-  @@map("users")
+  @@map("customer_users")
 }
 
-model UserLog {
+model CustomerUserLog {
   id            String   @id @default(uuid())
   userId        String
   eventType     String
@@ -60,11 +60,11 @@ model UserLog {
   level         String   @default("info")
   createdAt     DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user CustomerUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([eventType, createdAt])
-  @@map("user_logs")
+  @@map("customer_user_logs")
 }
 
 model InternalUser {

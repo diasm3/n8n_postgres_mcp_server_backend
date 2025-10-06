@@ -33,8 +33,8 @@ RUN yarn install --production --frozen-lockfile && yarn cache clean
 # Install Prisma CLI globally for migrations
 RUN yarn global add prisma
 
-# Copy built application from local dist (instead of from builder)
-COPY dist ./dist
+# Copy built application from builder
+COPY --from=builder /app/dist ./dist
 COPY prisma ./prisma
 
 # Copy Prisma client from builder

@@ -72,7 +72,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB} && psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -tAc "SELECT COUNT(*) FROM users" | grep -q ''^[1-9]'' || exit 1',
+          'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB} && psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -tAc "SELECT COUNT(*) FROM customer_users" | grep -q ''^[1-9]'' || exit 1',
         ]
       interval: 5s
       timeout: 10s

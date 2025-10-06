@@ -8,11 +8,11 @@ async function main() {
   console.log('Starting seed process...');
 
   // Clean existing data
-  await prisma.userLog.deleteMany();
-  await prisma.user.deleteMany();
+  await prisma.customerUserLog.deleteMany();
+  await prisma.customerUser.deleteMany();
 
   // Create admin user
-  const adminUser = await prisma.user.create({
+  const adminUser = await prisma.customerUser.create({
     data: {
       email: 'admin@junggo.com',
       password: await bcrypt.hash('admin123!', 10),
@@ -50,7 +50,7 @@ async function main() {
     const lastName = faker.person.lastName();
     const role = faker.helpers.arrayElement(['customer', 'customer', 'customer', 'seller']);
 
-    const user = await prisma.user.create({
+    const user = await prisma.customerUser.create({
       data: {
         email: faker.internet.email({ firstName, lastName }).toLowerCase(),
         password: await bcrypt.hash('password123!', 10),
@@ -180,7 +180,7 @@ async function main() {
           break;
       }
 
-      await prisma.userLog.create({
+      await prisma.customerUserLog.create({
         data: {
           userId: user.id,
           eventType,

@@ -137,7 +137,7 @@ INSERT INTO customer_complaints (
     satisfaction_score, feedback_comment, tags
 )
 SELECT
-    (SELECT id FROM users ORDER BY RANDOM() LIMIT 1),
+    (SELECT id FROM customer_users ORDER BY RANDOM() LIMIT 1),
     CASE (i % 10)
         WHEN 0 THEN '김민수' WHEN 1 THEN '이영희' WHEN 2 THEN '박철수' WHEN 3 THEN '정수진'
         WHEN 4 THEN '최지훈' WHEN 5 THEN '강민정' WHEN 6 THEN '조현우' WHEN 7 THEN '윤서연'
@@ -201,7 +201,7 @@ INSERT INTO customer_complaints (
     satisfaction_score, tags
 )
 SELECT
-    (SELECT id FROM users ORDER BY RANDOM() LIMIT 1),
+    (SELECT id FROM customer_users ORDER BY RANDOM() LIMIT 1),
     CASE (i % 8)
         WHEN 0 THEN '배수진' WHEN 1 THEN '송민호' WHEN 2 THEN '황지영' WHEN 3 THEN '오세훈'
         WHEN 4 THEN '권나영' WHEN 5 THEN '신동엽' WHEN 6 THEN '문채원' WHEN 7 THEN '하정우'
@@ -256,7 +256,7 @@ INSERT INTO customer_complaints (
     satisfaction_score, feedback_comment, tags, jira_ticket_key
 )
 SELECT
-    (SELECT id FROM users ORDER BY RANDOM() LIMIT 1),
+    (SELECT id FROM customer_users ORDER BY RANDOM() LIMIT 1),
     CASE (i % 12)
         WHEN 0 THEN '안재현' WHEN 1 THEN '구혜선' WHEN 2 THEN '이동욱' WHEN 3 THEN '유인나'
         WHEN 4 THEN '박보검' WHEN 5 THEN '아이유' WHEN 6 THEN '송중기' WHEN 7 THEN '송혜교'
@@ -339,7 +339,7 @@ INSERT INTO customer_complaints (
     tags
 )
 SELECT
-    (SELECT id FROM users ORDER BY RANDOM() LIMIT 1),
+    (SELECT id FROM customer_users ORDER BY RANDOM() LIMIT 1),
     CASE (i % 5)
         WHEN 0 THEN '정유미' WHEN 1 THEN '공유' WHEN 2 THEN '김고은'
         WHEN 3 THEN '이민호' WHEN 4 THEN '수지'
@@ -378,7 +378,7 @@ INSERT INTO customer_complaints (
     satisfaction_score, tags
 )
 SELECT
-    (SELECT id FROM users ORDER BY RANDOM() LIMIT 1),
+    (SELECT id FROM customer_users ORDER BY RANDOM() LIMIT 1),
     CASE (i % 5)
         WHEN 0 THEN '이정재' WHEN 1 THEN '정호연' WHEN 2 THEN '박해수'
         WHEN 3 THEN '위하준' WHEN 4 THEN '김주령'
@@ -422,7 +422,7 @@ INSERT INTO customer_complaints (
     first_response_at, jira_ticket_key, tags
 )
 SELECT
-    (SELECT id FROM users ORDER BY RANDOM() LIMIT 1),
+    (SELECT id FROM customer_users ORDER BY RANDOM() LIMIT 1),
     CASE (i % 5)
         WHEN 0 THEN '마동석' WHEN 1 THEN '윤계상' WHEN 2 THEN '한소희'
         WHEN 3 THEN '안보현' WHEN 4 THEN '김다미'

@@ -6,10 +6,10 @@
 -- 운영 환경에서는 실행하지 마세요!
 
 -- =====================================================
--- 1. Users 테이블 더미 데이터 (10,000명)
+-- 1. Customer Users 테이블 더미 데이터 (10,000명)
 -- =====================================================
 
-INSERT INTO users (
+INSERT INTO customer_users (
     id,
     email,
     password,
@@ -146,7 +146,7 @@ SELECT
     ),
     CASE (random() * 4)::int WHEN 0 THEN 'info' WHEN 1 THEN 'warning' WHEN 2 THEN 'error' ELSE 'debug' END,
     u."createdAt" + (random() * (NOW() - u."createdAt"))
-FROM users u
+FROM customer_users u
 CROSS JOIN generate_series(1, 50) AS i
 WHERE random() > 0.05;
 
@@ -165,7 +165,7 @@ SELECT
     '템플릿-' || i,
     '고객님, 안녕하세요. [변수1]에 대한 문의 주셔서 감사합니다. [변수2]',
     jsonb_build_array('변수1', '변수2'),
-    (SELECT id FROM users ORDER BY random() LIMIT 1)
+    (SELECT id FROM internal_users ORDER BY random() LIMIT 1)
 FROM generate_series(1, 20) AS i;
 
 -- 3-2. 지식베이스
@@ -182,7 +182,7 @@ SELECT
     (random() * 1000)::int,
     (random() * 100)::int,
     (random() * 20)::int,
-    (SELECT id FROM users ORDER BY random() LIMIT 1)
+    (SELECT id FROM internal_users ORDER BY random() LIMIT 1)
 FROM generate_series(1, 50) AS i;
 
 -- 3-3. 고객 컴플레인 (1,000개)
@@ -192,7 +192,7 @@ INSERT INTO customer_complaints (
     subject, description, status, assigned_to, created_at
 )
 SELECT
-    (SELECT id FROM users ORDER BY random() LIMIT 1),
+    (SELECT id FROM customer_users ORDER BY random() LIMIT 1),
     u."firstName" || ' ' || u."lastName",
     u.email,
     u."phoneNumber",
@@ -206,9 +206,9 @@ SELECT
     '문의 제목 ' || i,
     '문의 상세 내용입니다.',
     CASE (random() * 5)::int WHEN 0 THEN '접수' WHEN 1 THEN '처리중' ELSE '해결완료' END,
-    CASE WHEN random() > 0.3 THEN (SELECT id FROM users WHERE role = 'admin' ORDER BY random() LIMIT 1) ELSE NULL END,
+    CASE WHEN random() > 0.3 THEN (SELECT id FROM internal_users ORDER BY random() LIMIT 1) ELSE NULL END,
     NOW() - (random() * interval '60 days')
-FROM users u
+FROM customer_users u
 ORDER BY random()
 LIMIT 1000;
 

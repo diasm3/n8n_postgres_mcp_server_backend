@@ -12,8 +12,8 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/
 import { UserLogsService } from './user-logs.service';
 import { CreateUserLogDto } from './dto/create-user-log.dto';
 
-@ApiTags('user-logs')
-@Controller('user-logs')
+@ApiTags('customer-user-logs')
+@Controller('customer-user-logs')
 export class UserLogsController {
   constructor(private readonly userLogsService: UserLogsService) {}
 

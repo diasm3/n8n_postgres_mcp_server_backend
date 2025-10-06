@@ -1,5 +1,5 @@
--- Users 테이블 생성
-CREATE TABLE IF NOT EXISTS users (
+-- Customer Users 테이블 생성
+CREATE TABLE IF NOT EXISTS customer_users (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -21,11 +21,11 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- 인덱스 생성
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_customer_users_email ON customer_users(email);
+CREATE INDEX IF NOT EXISTS idx_customer_users_role ON customer_users(role);
 
--- User Logs 테이블 생성
-CREATE TABLE IF NOT EXISTS user_logs (
+-- Customer User Logs 테이블 생성
+CREATE TABLE IF NOT EXISTS customer_user_logs (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     "userId" TEXT NOT NULL,
     "eventType" VARCHAR(100) NOT NULL,
@@ -45,9 +45,9 @@ CREATE TABLE IF NOT EXISTS user_logs (
     level VARCHAR(20) DEFAULT 'info',
     "createdAt" TIMESTAMP DEFAULT NOW(),
 
-    CONSTRAINT fk_user_logs_user FOREIGN KEY ("userId") REFERENCES users(id) ON DELETE CASCADE
+    CONSTRAINT fk_customer_user_logs_user FOREIGN KEY ("userId") REFERENCES customer_users(id) ON DELETE CASCADE
 );
 
 -- 인덱스 생성
-CREATE INDEX IF NOT EXISTS idx_user_logs_user_created ON user_logs("userId", "createdAt");
-CREATE INDEX IF NOT EXISTS idx_user_logs_event_created ON user_logs("eventType", "createdAt");
+CREATE INDEX IF NOT EXISTS idx_customer_user_logs_user_created ON customer_user_logs("userId", "createdAt");
+CREATE INDEX IF NOT EXISTS idx_customer_user_logs_event_created ON customer_user_logs("eventType", "createdAt");

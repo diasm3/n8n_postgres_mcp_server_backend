@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserLogDto } from './dto/create-user-log.dto';
-import { UserLog } from '@prisma/client';
+import { CustomerUserLog } from '@prisma/client';
 
 @Injectable()
 export class UserLogsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createUserLogDto: CreateUserLogDto): Promise<UserLog> {
-    return this.prisma.userLog.create({
+  async create(createUserLogDto: CreateUserLogDto): Promise<CustomerUserLog> {
+    return this.prisma.customerUserLog.create({
       data: {
         ...createUserLogDto,
         tags: createUserLogDto.tags || [],
@@ -17,8 +17,8 @@ export class UserLogsService {
     });
   }
 
-  async findAll(limit: number = 100, offset: number = 0): Promise<UserLog[]> {
-    return this.prisma.userLog.findMany({
+  async findAll(limit: number = 100, offset: number = 0): Promise<CustomerUserLog[]> {
+    return this.prisma.customerUserLog.findMany({
       take: limit,
       skip: offset,
       orderBy: { createdAt: 'desc' },
@@ -39,8 +39,8 @@ export class UserLogsService {
     userId: string,
     limit: number = 100,
     offset: number = 0,
-  ): Promise<UserLog[]> {
-    return this.prisma.userLog.findMany({
+  ): Promise<CustomerUserLog[]> {
+    return this.prisma.customerUserLog.findMany({
       where: { userId },
       take: limit,
       skip: offset,
@@ -48,8 +48,8 @@ export class UserLogsService {
     });
   }
 
-  async findOne(id: string): Promise<UserLog | null> {
-    return this.prisma.userLog.findUnique({
+  async findOne(id: string): Promise<CustomerUserLog | null> {
+    return this.prisma.customerUserLog.findUnique({
       where: { id },
       include: {
         user: {
@@ -68,8 +68,8 @@ export class UserLogsService {
     eventType: string,
     limit: number = 100,
     offset: number = 0,
-  ): Promise<UserLog[]> {
-    return this.prisma.userLog.findMany({
+  ): Promise<CustomerUserLog[]> {
+    return this.prisma.customerUserLog.findMany({
       where: { eventType },
       take: limit,
       skip: offset,
@@ -88,7 +88,7 @@ export class UserLogsService {
   }
 
   async getStatsByUser(userId: string): Promise<any> {
-    const logs = await this.prisma.userLog.groupBy({
+    const logs = await this.prisma.customerUserLog.groupBy({
       by: ['eventType'],
       where: { userId },
       _count: {
@@ -96,7 +96,7 @@ export class UserLogsService {
       },
     });
 
-    const totalLogs = await this.prisma.userLog.count({
+    const totalLogs = await this.prisma.customerUserLog.count({
       where: { userId },
     });
 

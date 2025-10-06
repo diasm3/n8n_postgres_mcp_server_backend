@@ -42,7 +42,7 @@ export function registerTools(server: McpServer) {
       },
     },
     async ({ id }) => {
-      const response = await fetch(`http://backend:3000/users/${id}`)
+      const response = await fetch(`http://backend:3000/customer-users/${id}`)
       const data = (await response.json()) as Record<string, unknown>
       return {
         content: [{ type: "text", text: JSON.stringify(data) }],
@@ -147,7 +147,7 @@ export function registerTools(server: McpServer) {
       },
     },
     async ({ userId, limit, offset }) => {
-      let url = `http://backend:3000/user-logs/user/${userId}`
+      let url = `http://backend:3000/customer-user-logs/user/${userId}`
       const params = new URLSearchParams()
       if (limit) params.append("limit", limit.toString())
       if (offset) params.append("offset", offset.toString())
@@ -171,7 +171,7 @@ export function registerTools(server: McpServer) {
     },
     async ({ userId }) => {
       const response = await fetch(
-        `http://backend:3000/user-logs/user/${userId}/stats`
+        `http://backend:3000/customer-user-logs/user/${userId}/stats`
       )
       const data = (await response.json()) as Record<string, unknown>
       return {
@@ -192,7 +192,7 @@ export function registerTools(server: McpServer) {
       },
     },
     async ({ limit, offset }) => {
-      let url = "http://backend:3000/user-logs"
+      let url = "http://backend:3000/customer-user-logs"
       const params = new URLSearchParams()
       if (limit) params.append("limit", limit.toString())
       if (offset) params.append("offset", offset.toString())
@@ -219,7 +219,7 @@ export function registerTools(server: McpServer) {
       },
     },
     async ({ eventType, limit, offset }) => {
-      let url = `http://backend:3000/user-logs/event/${eventType}`
+      let url = `http://backend:3000/customer-user-logs/event/${eventType}`
       const params = new URLSearchParams()
       if (limit) params.append("limit", limit.toString())
       if (offset) params.append("offset", offset.toString())
@@ -337,7 +337,7 @@ export function registerTools(server: McpServer) {
     {
       title: "Category Complaints Fetcher",
       description:
-        "Get complaints by category ( ©ô, Áˆô, 0¡lä, etc.)",
+        "Get complaints by category ( ï¿½ï¿½, ï¿½ï¿½ï¿½, 0ï¿½lï¿½, etc.)",
       inputSchema: {
         category: z.string(),
         limit: z.number().optional(),

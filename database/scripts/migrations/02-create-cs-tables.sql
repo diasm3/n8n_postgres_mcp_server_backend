@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS customer_complaints (
     ticket_number VARCHAR(50) UNIQUE NOT NULL,
 
     -- 고객 정보
-    user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    user_id TEXT REFERENCES customer_users(id) ON DELETE SET NULL,
     customer_name VARCHAR(100) NOT NULL,
     customer_email VARCHAR(255) NOT NULL,
     customer_phone VARCHAR(20),
@@ -341,7 +341,7 @@ SELECT
         ELSE false
     END AS is_sla_breached
 FROM customer_complaints c
-LEFT JOIN users u ON c.assigned_to = u.id
+LEFT JOIN internal_users u ON c.assigned_to = u.id
 LEFT JOIN complaint_sla_rules sla ON c.category = sla.category AND c.priority = sla.priority
 WHERE c.status NOT IN ('해결완료', '종결')
 ORDER BY c.priority DESC, c.created_at ASC;
