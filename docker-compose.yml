@@ -24,9 +24,7 @@ services:
       - "8001:3000"
     container_name: mcp-server
     environment:
-      - TRANSPORT=sse
-      - SSE_HOST=0.0.0.0
-      - SSE_PORT=3000
+      - PORT=3000
     restart: unless-stopped
 
   postgres-mcp:
@@ -61,17 +59,25 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/scripts/init/01-init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql
-      - ./database/backups/full-dump.sql:/docker-entrypoint-initdb.d/02-full-dump.sql
-      - ./database/scripts/migrations/02-create-cs-tables.sql:/docker-entrypoint-initdb.d/03-create-cs-tables.sql
+      - ./database/scripts/migrations/01-create-users-tables.sql:/docker-entrypoint-initdb.d/02-create-users-tables.sql
+      - ./database/backups/full-dump.sql:/docker-entrypoint-initdb.d/03-full-dump.sql
       - ./database/scripts/migrations/03-create-internal-users-tables.sql:/docker-entrypoint-initdb.d/04-create-internal-users-tables.sql
-      - ./database/scripts/migrations/05-create-embeddings-table.sql:/docker-entrypoint-initdb.d/05-create-embeddings-table.sql
-      - ./database/scripts/seeds/04-seed-internal-users.sql:/docker-entrypoint-initdb.d/06-seed-internal-users.sql
+      - ./database/scripts/migrations/02-create-cs-tables.sql:/docker-entrypoint-initdb.d/05-create-cs-tables.sql
+      - ./database/scripts/migrations/04-create-ticket-assignments-table.sql:/docker-entrypoint-initdb.d/06-create-ticket-assignments-table.sql
+      - ./database/scripts/migrations/05-create-embeddings-table.sql:/docker-entrypoint-initdb.d/07-create-embeddings-table.sql
+      - ./database/scripts/seeds/01-seed-users.sql:/docker-entrypoint-initdb.d/08-seed-users.sql
+      - ./database/scripts/seeds/04-seed-internal-users.sql:/docker-entrypoint-initdb.d/09-seed-internal-users.sql
+      - ./database/scripts/seeds/05-seed-complaints.sql:/docker-entrypoint-initdb.d/10-seed-complaints.sql
     healthcheck:
       test:
-        ["CMD-SHELL", "pg_isready -h localhost -U ${POSTGRES_USER} -d n8n_db"]
+        [
+          "CMD-SHELL",
+          'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB} && psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -tAc "SELECT COUNT(*) FROM users" | grep -q ''^[1-9]'' || exit 1',
+        ]
       interval: 5s
-      timeout: 5s
-      retries: 10
+      timeout: 10s
+      retries: 30
+      start_period: 30s
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -150,8 +156,10 @@ services:
     ports:
       - "${BACKEND_EXTERNAL_PORT}:${BACKEND_PORT}"
     depends_on:
-      - postgres
-    command: sh -c "npx prisma migrate deploy && node dist/src/main.js"
+      postgres:
+        condition: service_healthy
+    command: sh -c "node dist/src/main.js"
+    restart: on-failure
 
 volumes:
   postgres_data:

@@ -478,7 +478,7 @@ WHERE c.status IN ('처리중', '해결완료') AND c.assigned_to IS NOT NULL;
 INSERT INTO complaint_responses (complaint_id, responder_id, responder_type, response_type, content, is_internal)
 SELECT
     c.id,
-    c.user_id,
+    NULL,  -- 고객 응답이므로 responder_id는 NULL
     'customer',
     'reply',
     '아직도 해결이 안됐는데 언제쯤 처리되나요?',

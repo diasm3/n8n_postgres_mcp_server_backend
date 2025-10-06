@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS customer_complaints (
     is_escalated BOOLEAN DEFAULT false,
 
     -- 처리 정보
-    assigned_to TEXT REFERENCES users(id) ON DELETE SET NULL,
+    assigned_to TEXT REFERENCES internal_users(id) ON DELETE SET NULL,
     assigned_team VARCHAR(50),
     first_response_at TIMESTAMP,
     resolved_at TIMESTAMP,
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS complaint_responses (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
     complaint_id UUID NOT NULL REFERENCES customer_complaints(id) ON DELETE CASCADE,
-    responder_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    responder_id TEXT REFERENCES internal_users(id) ON DELETE SET NULL,
 
     responder_type VARCHAR(20) DEFAULT 'agent' CHECK (responder_type IN (
         'agent', 'system', 'customer'
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS complaint_history (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
     complaint_id UUID NOT NULL REFERENCES customer_complaints(id) ON DELETE CASCADE,
-    actor_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    actor_id TEXT REFERENCES internal_users(id) ON DELETE SET NULL,
 
     action VARCHAR(100) NOT NULL,
     from_value VARCHAR(255),
@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS complaint_templates (
     is_active BOOLEAN DEFAULT true,
     usage_count INTEGER DEFAULT 0,
 
-    created_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+    created_by TEXT REFERENCES internal_users(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -178,7 +178,7 @@ CREATE TABLE IF NOT EXISTS complaint_knowledge_base (
 
     is_published BOOLEAN DEFAULT true,
 
-    created_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+    created_by TEXT REFERENCES internal_users(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );

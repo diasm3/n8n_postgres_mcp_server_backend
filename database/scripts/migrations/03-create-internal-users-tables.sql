@@ -2,6 +2,9 @@
 -- Internal Users Schema (CS 담당자 및 개발자)
 -- =====================================================
 
+-- UUID extension 활성화
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- CS 팀 및 개발팀 구성원 테이블
 CREATE TABLE IF NOT EXISTS internal_users (
     id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::TEXT,
@@ -141,23 +144,6 @@ CREATE TABLE IF NOT EXISTS user_skills (
 CREATE INDEX idx_user_skills_user ON user_skills(user_id);
 CREATE INDEX idx_user_skills_category ON user_skills(skill_category);
 
--- 티켓 할당 이력 테이블
-CREATE TABLE IF NOT EXISTS ticket_assignments (
-    id SERIAL PRIMARY KEY,
-    ticket_id UUID REFERENCES customer_complaints(id) ON DELETE CASCADE,
-    assigned_to TEXT REFERENCES internal_users(id) ON DELETE SET NULL,
-    assigned_by TEXT REFERENCES internal_users(id) ON DELETE SET NULL,
-    assigned_at TIMESTAMP DEFAULT NOW(),
-    unassigned_at TIMESTAMP,
-    assignment_reason TEXT,
-    priority_override INTEGER, -- 우선순위 오버라이드
-    metadata JSONB DEFAULT '{}'
-);
-
-CREATE INDEX idx_ticket_assignments_ticket ON ticket_assignments(ticket_id);
-CREATE INDEX idx_ticket_assignments_user ON ticket_assignments(assigned_to);
-CREATE INDEX idx_ticket_assignments_date ON ticket_assignments(assigned_at);
-
 -- 업데이트 타임스탬프 자동 갱신 트리거
 CREATE OR REPLACE FUNCTION update_internal_users_timestamp()
 RETURNS TRIGGER AS $$
@@ -194,24 +180,6 @@ CREATE TRIGGER trigger_update_team_member_count
 AFTER INSERT OR DELETE ON team_members
 FOR EACH ROW
 EXECUTE FUNCTION update_team_member_count();
-
--- 현재 워크로드 자동 업데이트 트리거
-CREATE OR REPLACE FUNCTION update_user_workload()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF TG_OP = 'INSERT' AND NEW.unassigned_at IS NULL THEN
-        UPDATE internal_users SET current_workload = current_workload + 1 WHERE id = NEW.assigned_to;
-    ELSIF TG_OP = 'UPDATE' AND OLD.unassigned_at IS NULL AND NEW.unassigned_at IS NOT NULL THEN
-        UPDATE internal_users SET current_workload = current_workload - 1 WHERE id = NEW.assigned_to;
-    END IF;
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_update_user_workload
-AFTER INSERT OR UPDATE ON ticket_assignments
-FOR EACH ROW
-EXECUTE FUNCTION update_user_workload();
 
 -- 뷰: 현재 활성 CS 담당자 현황
 CREATE OR REPLACE VIEW active_cs_agents AS
@@ -261,4 +229,3 @@ COMMENT ON TABLE work_shifts IS '근무 일정';
 COMMENT ON TABLE user_absences IS '휴가 및 부재 기록';
 COMMENT ON TABLE performance_records IS '일일 성과 기록';
 COMMENT ON TABLE user_skills IS '직원 스킬 및 자격증';
-COMMENT ON TABLE ticket_assignments IS '티켓 할당 이력';
