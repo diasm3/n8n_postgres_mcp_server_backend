@@ -1,99 +1,340 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Backend API (NestJS)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+중고나라 CS 민원 관리 시스템의 백엔드 API 서버입니다.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 📋 기술 스택
 
-## Description
+- **Framework**: NestJS
+- **ORM**: Prisma
+- **Database**: PostgreSQL 16
+- **Language**: TypeScript
+- **Documentation**: Swagger/OpenAPI
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🚀 주요 기능
 
-## Project setup
+### API 엔드포인트
 
-```bash
-$ yarn install
-```
+#### Customer Users API (고객 관리)
+- `GET /customer-users` - 모든 고객 사용자 조회
+- `POST /customer-users` - 새 고객 사용자 생성
+- `GET /customer-users/:id` - 특정 고객 사용자 조회
+- `PUT /customer-users/:id` - 고객 사용자 정보 수정
+- `DELETE /customer-users/:id` - 고객 사용자 삭제
 
-## Compile and run the project
+#### Customer User Logs API (고객 로그)
+- `GET /customer-user-logs` - 모든 로그 조회
+- `POST /customer-user-logs` - 로그 생성
+- `GET /customer-user-logs/user/:userId` - 특정 사용자 로그 조회
+- `GET /customer-user-logs/user/:userId/stats` - 사용자 로그 통계
+- `GET /customer-user-logs/event/:eventType` - 이벤트 타입별 로그 조회
 
-```bash
-# development
-$ yarn run start
+#### Internal Users API (직원 관리)
+- `GET /internal-users` - 모든 직원 조회
+- `POST /internal-users` - 새 직원 생성
+- `GET /internal-users/:id` - 특정 직원 조회
+- `GET /internal-users/employee/:employeeId` - 사번으로 조회
+- `GET /internal-users/available-agents` - 배정 가능한 상담원 조회
+- `PUT /internal-users/:id` - 직원 정보 수정
+- `DELETE /internal-users/:id` - 직원 삭제
 
-# watch mode
-$ yarn run start:dev
+#### Complaints API (민원 관리)
+- `GET /complaints` - 모든 민원 조회
+- `POST /complaints` - 새 민원 생성
+- `GET /complaints/:id` - 특정 민원 조회
+- `GET /complaints/ticket/:ticketNumber` - 티켓 번호로 조회
+- `GET /complaints/user/:userId` - 사용자별 민원 조회
+- `GET /complaints/category/:category` - 카테고리별 민원 조회
+- `GET /complaints/pending` - 대기 중인 민원 조회
+- `GET /complaints/stats` - 민원 통계
+- `GET /complaints/:id/responses` - 민원 응답 조회
+- `PUT /complaints/:id` - 민원 정보 수정 (담당자 배정, JIRA 티켓, 상태 등)
+- `DELETE /complaints/:id` - 민원 삭제
 
-# production mode
-$ yarn run start:prod
-```
+## 🛠️ 개발 환경
 
-## Run tests
-
-```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 로컬 개발
 
 ```bash
-$ yarn install -g mau
-$ mau deploy
+cd backend_junggo
+
+# 의존성 설치
+yarn install
+
+# Prisma 클라이언트 생성
+yarn prisma generate
+
+# 마이그레이션 실행
+yarn prisma migrate dev
+
+# 시드 데이터 생성
+yarn prisma db seed
+
+# 개발 서버 실행
+yarn start:dev
+
+# 프로덕션 빌드
+yarn build
+
+# 프로덕션 서버 실행
+yarn start:prod
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 환경 변수
 
-## Resources
+`.env` 파일:
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+DATABASE_URL="postgresql://junggo_user:junggo_password@localhost:5432/junggo_db"
+PORT=3000
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Docker로 실행
 
-## Support
+```bash
+# Backend 컨테이너만 빌드 및 시작
+docker compose up -d backend
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+# Backend 로그 확인
+docker logs junggo_backend -f
 
-## Stay in touch
+# Backend 재시작
+docker compose restart backend
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 📁 프로젝트 구조
 
-## License
+```
+backend_junggo/
+├── 📁 src/
+│   ├── 📁 users/                  # 고객 사용자 관리 모듈
+│   ├── 📁 user-logs/              # 고객 사용자 로그 모듈
+│   ├── 📁 internal-users/         # 직원 관리 모듈
+│   ├── 📁 complaints/             # 민원 관리 모듈
+│   ├── 📁 prisma/                 # Prisma 서비스
+│   ├── 📄 main.ts                 # 애플리케이션 엔트리
+│   ├── 📄 app.module.ts           # 루트 모듈
+│   └── 📄 app.controller.ts       # 루트 컨트롤러
+├── 📁 prisma/
+│   ├── 📁 migrations/             # Prisma 마이그레이션
+│   ├── 📄 schema.prisma           # 데이터베이스 스키마
+│   └── 📄 seed.ts                 # 시드 데이터
+├── 📁 test/                       # E2E 테스트
+├── 📄 Dockerfile                   # Docker 이미지 설정
+├── 📄 package.json                 # 의존성 관리
+├── 📄 tsconfig.json                # TypeScript 설정
+└── 📄 .env.example                 # 환경변수 템플릿
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 🗄️ 데이터베이스 스키마
+
+### 주요 테이블
+
+#### CustomerUsers (고객)
+- 기본 정보: id, email, password, firstName, lastName
+- 추가 정보: phoneNumber, birthDate, role, profileImageUrl
+- 설정: preferences (알림 설정, 관심 카테고리, 언어)
+- 주소: address (도로명, 도시, 지역, 우편번호)
+- 로그인 정보: loginCount, lastLoginAt, lastLoginIp
+
+#### InternalUsers (직원)
+- 기본 정보: id, email, firstName, lastName, password, phoneNumber
+- 직무 정보: department, position, employeeId, role
+- 권한 및 레벨: accessLevel, permissions
+- CS 전문성: specialties, maxConcurrentTickets
+- 근무 정보: workSchedule, isAvailable, currentWorkload
+- 성과 지표: totalTicketsHandled, avgResolutionTime, satisfactionRating
+
+#### CustomerComplaints (민원)
+- 티켓 정보: id, ticketNumber
+- 고객 정보: userId, customerName, customerEmail, customerPhone
+- 문의 분류: category, subCategory, priority, urgency
+- 내용: subject, description, attachments
+- 상태 관리: status, escalationLevel, isEscalated
+- 처리 정보: assignedTo, assignedTeam, firstResponseAt, resolvedAt
+- 관련 정보: relatedProductId, relatedOrderId, relatedSellerId, jiraTicketKey
+- 보상/조치: compensationType, compensationAmount, compensationNote
+- 고객 만족도: satisfactionScore, feedbackComment
+
+#### ComplaintResponses (민원 응답)
+- 기본 정보: id, complaintId, responderId, responderType
+- 응답 내용: responseType, content, attachments
+- 플래그: isInternal, isAutoResponse
+
+#### ComplaintHistory (민원 이력)
+- 기본 정보: id, complaintId, actorId
+- 변경 내역: action, fromValue, toValue, note
+
+## 📡 API 문서
+
+### Swagger UI
+
+서버 실행 후 다음 URL에서 API 문서를 확인할 수 있습니다:
+
+- **로컬**: http://localhost:3000/api
+- **Docker**: http://localhost:3003/api
+
+### CORS 설정
+
+다음 Origin이 허용되어 있습니다:
+- `http://localhost:3002` (Frontend)
+- `http://127.0.0.1:3002`
+- `http://localhost:3000`
+
+### 민원 생성 예제
+
+```bash
+curl -X POST http://localhost:3003/complaints \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerName": "홍길동",
+    "customerEmail": "hong@example.com",
+    "customerPhone": "010-1234-5678",
+    "category": "배송구매",
+    "subject": "배송이 지연되고 있습니다",
+    "description": "주문한 상품이 일주일째 배송 중입니다...",
+    "priority": "medium",
+    "urgency": "normal",
+    "relatedProductId": "PROD-ABC123",
+    "relatedOrderId": "ORD-XYZ789"
+  }'
+```
+
+## 🔧 Prisma 관리
+
+### 마이그레이션
+
+```bash
+# 새 마이그레이션 생성
+yarn prisma migrate dev --name migration_name
+
+# 마이그레이션 적용
+yarn prisma migrate deploy
+
+# 마이그레이션 상태 확인
+yarn prisma migrate status
+
+# 마이그레이션 리셋 (주의: 모든 데이터 삭제)
+yarn prisma migrate reset
+```
+
+### Prisma Studio
+
+```bash
+# Prisma Studio 실행 (DB GUI)
+yarn prisma studio
+```
+
+브라우저에서 http://localhost:5555 접속
+
+### 시드 데이터
+
+```bash
+# 시드 데이터 생성
+yarn prisma db seed
+```
+
+50개 이상의 더미 데이터가 생성됩니다:
+- 고객 사용자
+- 직원
+- 민원
+- 민원 응답
+- 민원 이력
+
+## 🔍 테스트
+
+```bash
+# 단위 테스트
+yarn test
+
+# E2E 테스트
+yarn test:e2e
+
+# 테스트 커버리지
+yarn test:cov
+```
+
+## 🐳 Docker 배포
+
+### Dockerfile
+
+Multi-stage 빌드를 사용하여 최적화된 이미지 생성:
+
+```dockerfile
+# 빌드 스테이지
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN yarn install
+COPY . .
+RUN yarn prisma generate
+RUN yarn build
+
+# 프로덕션 스테이지
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/prisma ./prisma
+CMD ["node", "dist/main"]
+```
+
+### 포트 설정
+
+- **내부 포트**: 3000 (컨테이너 내부)
+- **외부 포트**: 3003 (호스트 머신)
+
+## 🔧 트러블슈팅
+
+### Prisma 클라이언트 생성 실패
+
+```bash
+# Prisma 클라이언트 재생성
+yarn prisma generate
+
+# node_modules 삭제 후 재설치
+rm -rf node_modules
+yarn install
+```
+
+### 마이그레이션 충돌
+
+```bash
+# 마이그레이션 상태 확인
+yarn prisma migrate status
+
+# 문제가 있는 마이그레이션 해결
+yarn prisma migrate resolve --applied "migration_name"
+# 또는
+yarn prisma migrate resolve --rolled-back "migration_name"
+```
+
+### 데이터베이스 연결 실패
+
+```bash
+# PostgreSQL 컨테이너 상태 확인
+docker ps | grep postgres
+
+# 데이터베이스 로그 확인
+docker logs junggo_postgres
+
+# 연결 테스트
+docker exec junggo_postgres psql -U junggo_user -d junggo_db -c "SELECT 1"
+```
+
+### 포트 충돌
+
+```bash
+# 포트 사용 확인
+lsof -i :3000
+
+# 프로세스 종료
+kill -9 <PID>
+```
+
+## 📚 관련 문서
+
+- [Root README](../README.md) - 전체 프로젝트 개요
+- [Frontend README](../frontend/README.md) - Frontend 문서
+- [MCP Server README](../mcp_server_practice/README.md) - MCP Server 문서
+- [Database README](../database/README.md) - 데이터베이스 문서
+- [Prisma Schema](./prisma/schema.prisma) - 데이터베이스 스키마
