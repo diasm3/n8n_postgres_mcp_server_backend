@@ -62,6 +62,10 @@ confluence_data/
 database/backups/*
 !database/backups/full-dump.sql
 
+# Large seed files (대용량 시드 파일)
+database/scripts/seeds/*-seed-*.sql
+!database/scripts/seeds/05-seed-complaints.sql
+
 # Backup files
 *.bak
 *.backup
