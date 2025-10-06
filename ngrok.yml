@@ -1,0 +1,7 @@
+version: "2"
+tunnels:
+  n8n:
+    addr: n8n:5678
+    proto: http
+    schemes:
+      - https
