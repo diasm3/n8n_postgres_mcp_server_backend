@@ -1,0 +1,159 @@
+version: "3.7"
+services:
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: junggo_ngrok
+    restart: unless-stopped
+    command:
+      - "start"
+      - "--all"
+      - "--config"
+      - "/etc/ngrok.yml"
+    volumes:
+      - ./ngrok.yml:/etc/ngrok.yml
+    ports:
+      - "4040:4040"
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    depends_on:
+      - n8n
+
+  mcp-server:
+    build: ./mcp_server_practice
+    ports:
+      - "8001:3000"
+    container_name: mcp-server
+    environment:
+      - TRANSPORT=sse
+      - SSE_HOST=0.0.0.0
+      - SSE_PORT=3000
+    restart: unless-stopped
+
+  postgres-mcp:
+    image: crystaldba/postgres-mcp
+    container_name: postgres-mcp
+    restart: unless-stopped
+    ports:
+      - "${MCP_POSTGRES_PORT}:8000"
+    environment:
+      - DATABASE_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+    command:
+      [
+        "--access-mode=unrestricted",
+        "--transport=sse",
+        "--sse-host=0.0.0.0",
+        "--sse-port=8000",
+      ]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: pgvector/pgvector:pg16 # pgvector 포함된 이미지
+    container_name: junggo_postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_MULTIPLE_DATABASES=n8n_db # 추가 데이터베이스 생성
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/scripts/init/01-init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql
+      - ./database/backups/full-dump.sql:/docker-entrypoint-initdb.d/02-full-dump.sql
+      - ./database/scripts/migrations/02-create-cs-tables.sql:/docker-entrypoint-initdb.d/03-create-cs-tables.sql
+      - ./database/scripts/migrations/03-create-internal-users-tables.sql:/docker-entrypoint-initdb.d/04-create-internal-users-tables.sql
+      - ./database/scripts/migrations/05-create-embeddings-table.sql:/docker-entrypoint-initdb.d/05-create-embeddings-table.sql
+      - ./database/scripts/seeds/04-seed-internal-users.sql:/docker-entrypoint-initdb.d/06-seed-internal-users.sql
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -h localhost -U ${POSTGRES_USER} -d n8n_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: junggo_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "${PGADMIN_PORT}:80"
+    depends_on:
+      - postgres
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: junggo_n8n
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PORT=${N8N_PORT}
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL}/
+      - N8N_EDITOR_BASE_URL=${N8N_WEBHOOK_URL}/
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n_db
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_RUNNERS_ENABLED=true
+    ports:
+      - "${N8N_EXTERNAL_PORT}:${N8N_PORT}"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - postgres
+
+  jira:
+    image: atlassian/jira-software:9.12.0
+    container_name: junggo_jira
+    environment:
+      - ATL_PROXY_NAME=${JIRA_PROXY_NAME}
+      - ATL_PROXY_PORT=${JIRA_PROXY_PORT}
+      - ATL_TOMCAT_SCHEME=http
+      - ATL_TOMCAT_SECURE=false
+      - ATL_JDBC_USER=${POSTGRES_USER}
+      - ATL_JDBC_PASSWORD=${POSTGRES_PASSWORD}
+      - ATL_DB_DRIVER=org.postgresql.Driver
+      - ATL_DB_TYPE=postgres72
+      - ATL_DB_HOST=postgres
+      - ATL_DB_PORT=5432
+      - ATL_DB_DATABASE=jira_db
+      - ATL_DB_SCHEMA_NAME=public
+      - ATL_JDBC_URL=jdbc:postgresql://postgres:5432/jira_db
+      - JVM_MINIMUM_MEMORY=${JIRA_JVM_MIN_MEMORY}
+      - JVM_MAXIMUM_MEMORY=${JIRA_JVM_MAX_MEMORY}
+    ports:
+      - "${JIRA_EXTERNAL_PORT}:${JIRA_PROXY_PORT}"
+    volumes:
+      - jira_data:/var/atlassian/application-data/jira
+    depends_on:
+      - postgres
+
+  backend:
+    build:
+      context: ./backend_junggo
+      dockerfile: Dockerfile
+    image: junggo_backend:latest
+    container_name: junggo_backend
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PORT: ${BACKEND_PORT}
+    ports:
+      - "${BACKEND_EXTERNAL_PORT}:${BACKEND_PORT}"
+    depends_on:
+      - postgres
+    command: sh -c "npx prisma migrate deploy && node dist/src/main.js"
+
+volumes:
+  postgres_data:
+  n8n_data:
+  jira_data:

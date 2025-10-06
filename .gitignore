@@ -1,0 +1,113 @@
+# =====================================================
+# Root Project .gitignore
+# =====================================================
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Docker volumes
+postgres_data/
+n8n_data/
+jira_data/
+confluence_data/
+
+# Database dumps (일반적으로 제외)
+*.sql.gz
+*.dump
+
+# Database backups - 특정 파일만 포함
+database/backups/*
+!database/backups/full-dump.sql
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.tmp
+
+# ngrok
+ngrok
+ngrok.exe
+ngrok.yml
+
+# Claude Code
+.claude/
+.claude-cache/
+
+# Temporary files
+tmp/
+temp/
+*.cache
+.cache/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+
+# Test coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Prisma
+*.db
+*.db-journal
+
+# Certificates
+*.pem
+*.key
+*.crt
+*.cer
+
+# Compressed files
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z

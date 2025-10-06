@@ -1,0 +1,292 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  password        String
+  firstName       String
+  lastName        String
+  phoneNumber     String?
+  birthDate       DateTime? @db.Date
+  role            String    @default("customer")
+  isActive        Boolean   @default(true)
+  profileImageUrl String?
+  preferences     Json?
+  address         Json?
+  loginCount      Int       @default(0)
+  lastLoginAt     DateTime?
+  lastLoginIp     String?
+  metadata        Json      @default("{}")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  logs UserLog[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model UserLog {
+  id            String   @id @default(uuid())
+  userId        String
+  eventType     String
+  eventCategory String?
+  eventData     Json?
+  ipAddress     String?
+  userAgent     String?
+  deviceInfo    Json?
+  location      Json?
+  sessionId     String?
+  referrer      String?
+  currentUrl    String?
+  responseTime  Int?
+  httpMethod    String?
+  statusCode    Int?
+  tags          Json     @default("[]")
+  level         String   @default("info")
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([eventType, createdAt])
+  @@map("user_logs")
+}
+
+model InternalUser {
+  id                  String    @id @default(uuid())
+  email               String    @unique
+  firstName           String
+  lastName            String
+  password            String
+  phoneNumber         String?   @map("phone_number")
+
+  // 직무 정보
+  department          String
+  position            String
+  employeeId          String    @unique @map("employee_id")
+  role                String
+
+  // 권한 및 레벨
+  accessLevel         Int       @default(1) @map("access_level")
+  permissions         Json?     @default("[]")
+
+  // CS 전문성
+  specialties         Json?     @default("[]")
+  maxConcurrentTickets Int?     @default(5) @map("max_concurrent_tickets")
+
+  // 근무 정보
+  workSchedule        Json?     @map("work_schedule")
+  isAvailable         Boolean   @default(true) @map("is_available")
+  currentWorkload     Int       @default(0) @map("current_workload")
+
+  // 성과 지표
+  totalTicketsHandled Int       @default(0) @map("total_tickets_handled")
+  avgResolutionTime   Int?      @map("avg_resolution_time")
+  satisfactionRating  Decimal?  @map("satisfaction_rating") @db.Decimal(3, 2)
+
+  // 상태 정보
+  status              String    @default("active")
+  lastActiveAt        DateTime? @map("last_active_at")
+
+  // 메타데이터
+  metadata            Json      @default("{}")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@index([department])
+  @@index([role])
+  @@index([status])
+  @@index([isAvailable])
+  @@index([accessLevel])
+  @@map("internal_users")
+}
+
+model CustomerComplaint {
+  id                  String    @id @default(uuid()) @db.Uuid
+
+  // 티켓 정보
+  ticketNumber        String?   @unique @map("ticket_number")
+
+  // 고객 정보
+  userId              String?   @map("user_id")
+  customerName        String    @map("customer_name")
+  customerEmail       String    @map("customer_email")
+  customerPhone       String?   @map("customer_phone")
+
+  // 문의 분류
+  category            String
+  subCategory         String?   @map("sub_category")
+  priority            String    @default("medium")
+  urgency             String    @default("normal")
+
+  // 내용
+  subject             String
+  description         String    @db.Text
+  attachments         Json      @default("[]")
+
+  // 상태 관리
+  status              String    @default("접수")
+  escalationLevel     Int       @default(1) @map("escalation_level")
+  isEscalated         Boolean   @default(false) @map("is_escalated")
+
+  // 처리 정보
+  assignedTo          String?   @map("assigned_to")
+  assignedTeam        String?   @map("assigned_team")
+  firstResponseAt     DateTime? @map("first_response_at")
+  resolvedAt          DateTime? @map("resolved_at")
+  responseTime        Int?      @map("response_time")
+  resolutionTime      Int?      @map("resolution_time")
+
+  // 관련 정보
+  relatedProductId    String?   @map("related_product_id")
+  relatedOrderId      String?   @map("related_order_id")
+  relatedSellerId     String?   @map("related_seller_id")
+  jiraTicketKey       String?   @map("jira_ticket_key")
+
+  // 보상/조치
+  compensationType    String?   @map("compensation_type")
+  compensationAmount  Int       @default(0) @map("compensation_amount")
+  compensationNote    String?   @map("compensation_note") @db.Text
+
+  // 고객 만족도
+  satisfactionScore   Int?      @map("satisfaction_score")
+  feedbackComment     String?   @map("feedback_comment") @db.Text
+
+  // 메타데이터
+  tags                Json      @default("[]")
+  metadata            Json      @default("{}")
+
+  // 타임스탬프
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  responses           ComplaintResponse[]
+  history             ComplaintHistory[]
+
+  @@index([ticketNumber])
+  @@index([userId])
+  @@index([category])
+  @@index([status])
+  @@index([priority])
+  @@index([assignedTo])
+  @@index([createdAt])
+  @@index([status, priority])
+  @@index([category, status])
+  @@map("customer_complaints")
+}
+
+model ComplaintResponse {
+  id              String    @id @default(uuid()) @db.Uuid
+  complaintId     String    @map("complaint_id") @db.Uuid
+  responderId     String?   @map("responder_id")
+  responderType   String    @default("agent") @map("responder_type")
+  responseType    String    @default("reply") @map("response_type")
+  content         String    @db.Text
+  attachments     Json      @default("[]")
+  isInternal      Boolean   @default(false) @map("is_internal")
+  isAutoResponse  Boolean   @default(false) @map("is_auto_response")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  complaint       CustomerComplaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+
+  @@index([complaintId])
+  @@index([responderId])
+  @@index([createdAt])
+  @@index([complaintId, createdAt])
+  @@map("complaint_responses")
+}
+
+model ComplaintHistory {
+  id            String    @id @default(uuid()) @db.Uuid
+  complaintId   String    @map("complaint_id") @db.Uuid
+  actorId       String?   @map("actor_id")
+  action        String
+  fromValue     String?   @map("from_value")
+  toValue       String?   @map("to_value")
+  note          String?   @db.Text
+  metadata      Json      @default("{}")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  complaint     CustomerComplaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+
+  @@index([complaintId])
+  @@index([actorId])
+  @@index([createdAt])
+  @@index([action])
+  @@map("complaint_history")
+}
+
+model ComplaintTemplate {
+  id              String    @id @default(uuid()) @db.Uuid
+  category        String?
+  subCategory     String?   @map("sub_category")
+  templateName    String    @map("template_name")
+  templateContent String    @map("template_content") @db.Text
+  variables       Json      @default("[]")
+  isActive        Boolean   @default(true) @map("is_active")
+  usageCount      Int       @default(0) @map("usage_count")
+  createdBy       String?   @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@index([isActive])
+  @@index([usageCount])
+  @@map("complaint_templates")
+}
+
+model ComplaintSlaRule {
+  id                  String    @id @default(uuid()) @db.Uuid
+  category            String
+  priority            String
+  firstResponseTime   Int       @map("first_response_time")
+  resolutionTime      Int       @map("resolution_time")
+  escalationTime      Int?      @map("escalation_time")
+  isActive            Boolean   @default(true) @map("is_active")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@unique([category, priority])
+  @@index([category, priority])
+  @@index([isActive])
+  @@map("complaint_sla_rules")
+}
+
+model ComplaintKnowledgeBase {
+  id                String    @id @default(uuid()) @db.Uuid
+  category          String
+  subCategory       String?   @map("sub_category")
+  question          String    @db.Text
+  answer            String    @db.Text
+  keywords          Json      @default("[]")
+  relatedArticles   Json      @default("[]") @map("related_articles")
+  viewCount         Int       @default(0) @map("view_count")
+  helpfulCount      Int       @default(0) @map("helpful_count")
+  notHelpfulCount   Int       @default(0) @map("not_helpful_count")
+  isPublished       Boolean   @default(true) @map("is_published")
+  createdBy         String?   @map("created_by")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@index([isPublished])
+  @@index([viewCount])
+  @@index([helpfulCount])
+  @@map("complaint_knowledge_base")
+}
